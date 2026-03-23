@@ -31,7 +31,7 @@ class LightsOutState:
         for i in self.board:
             print(i)
 
-def drawBoard(screen, board):
+def drawBoard(screen, board, on_img, off_img):
     LIGHT = 110
     ON_COLOR  = (255,215,0)
     OFF_COLOR = (0,0,0)
@@ -44,10 +44,10 @@ def drawBoard(screen, board):
         for j in range(size):
             x = 20 + (LIGHT+10) * i
             y = 20 + (LIGHT+10) * j
-            color = ON_COLOR
-            if(board[i][j] == 0):
-                color = OFF_COLOR
-            pygame.draw.rect(screen, color, (x,y,LIGHT,LIGHT))
+            if board[i][j] == 0:
+                screen.blit(on_img, (x, y))
+            else:
+                screen.blit(off_img, (x, y))
     
     pygame.display.flip()
 
@@ -69,6 +69,10 @@ def play():
     size = len(state.board)
     win_px = PADDING * 2 + size * 110 + (size - 1) * GAP
     pygame.init()
+    on_img = pygame.image.load("sprites/lightson.jpg")
+    off_img = pygame.image.load("sprites/lightsoff.jpg")
+    on_img = pygame.transform.scale(on_img, (110, 110))
+    off_img = pygame.transform.scale(off_img, (110, 110))
     screen = pygame.display.set_mode((win_px, win_px))
     clock = pygame.time.Clock()
 
@@ -84,22 +88,10 @@ def play():
                 if 0 <= row < size and 0 <= col < size:
                     state.move(row, col)
 
-        drawBoard(screen,state.board)
+        drawBoard(screen, state.board, on_img, off_img)
         clock.tick(60)
     
     print("You won")
 
 
 play()
-
-          
-    
-
-
-
-
-
-
-
-
-
