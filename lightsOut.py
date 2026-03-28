@@ -2,6 +2,7 @@ import pygame
 import sys
 from collections import deque
 import copy
+import random
 
 class LightsOutState:
 
@@ -43,7 +44,6 @@ class LightsOutState:
     def __hash__(self):
         return hash(tuple(tuple(row) for row in self.board))
 
-
 def bfs(initial_state):
     if initial_state.winningState():
         return []
@@ -76,6 +76,7 @@ def dfs(initial_state, max_depth=20):
                 stack.append((new_state, moves + [(r,c)], path_visited | {new_state}))
     return None
     
+
 def drawBoard(screen, board, on_img, off_img):
     LIGHT = 110
     ON_COLOR  = (255,215,0)
@@ -96,16 +97,22 @@ def drawBoard(screen, board, on_img, off_img):
     
     pygame.display.flip()
 
+def randomBoard(n = 4, moves = 10):
+    board = [[0]*n for _ in range(n)]
+    state = LightsOutState(board)
+    for _ in range(moves):
+        r = random.randint(0, n-1)
+        c = random.randint(0, n-1)
+        state = state.move(r,c)
+    return state
+
 def play():
 
     GAP       = 6
     PADDING   = 30
 
-    state = LightsOutState([[1,1,0,0],
-                    [1,0,0,0],
-                    [0,0,0,1],
-                    [0,0,1,1]])
-    
+    state = randomBoard()
+    initial_state = LightsOutState(copy.deepcopy(state.board))
     size = len(state.board)
     win_px = PADDING * 2 + size * 110 + (size - 1) * GAP
     pygame.init()
@@ -115,19 +122,41 @@ def play():
     off_img = pygame.transform.scale(off_img, (110, 110))
     screen = pygame.display.set_mode((win_px, win_px))
     clock = pygame.time.Clock()
+    pc_moves = []
+    pc_timer = 0
 
-    while not(state.winningState()):
+    while not state.winningState():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
-            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_b:        # BFS
+                    sol = bfs(initial_state)
+                    if sol:
+                        state    = LightsOutState(copy.deepcopy(initial_state.board))
+                        pc_moves = list(sol)
+                        pc_timer = 0
+                if event.key == pygame.K_d:            # DFS
+                        sol = dfs(initial_state)
+                        if sol:
+                            state    = LightsOutState(copy.deepcopy(initial_state.board))
+                            pc_moves = list(sol)
+                            pc_timer = 0
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = event.pos
                 col = (mx - 20) // (110 + 10)
                 row = (my - 20) // (110 + 10)
                 if 0 <= row < size and 0 <= col < size:
                     state = state.move(row, col)
-
+                    pc_moves = []
+            
+        if pc_moves:
+            pc_timer -= 1
+            if pc_timer <= 0:
+                r, c     = pc_moves.pop(0)
+                state    = state.move(r, c)
+                pc_timer = 40
+                
         drawBoard(screen, state.board, on_img, off_img)
         clock.tick(60)
     
