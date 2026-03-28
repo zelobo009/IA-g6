@@ -3,15 +3,18 @@
 
 # Lights Out
 
-## State Representation
+Representação : O jogo pode ser representado por uma matrix quadrada N x N onde quadrados ligados estão a 1 e desligados a 0.
 
-The game can be represented with a Square matrix with size N where lighted squares are '1' and closed squares are '0'.
+Estado Inicial :  Configuração aleatória do tabuleiro combinado por luzes ligadas e desligadas. 
 
-Final State: Matrix full of '0's 
+Estado Final : M[i][j] = 0 para todos os quadrados da matriz, luzes totalmente desligadas.
 
-Operators:
+Operador :  Toggle M[i][j], alterar o valor na posição (i, j).
 
-|  Name                         |  Preconditions                  |  Effects                                                                   |  Unitary Cost  | 
-|  Light Square M[i][j]         |  0 <= i,j  < N ; M[i][j] == '0' |  M[i][j] == '1', M[i][j+1]^=1, M[i][j-1]^=1 M[i-1][j]^=1 M[i+1][j]^=1      |       1        |
-|  Turn Off Square M[i][j]      |  0 <= i,j  < N ; M[i][j] == '1' |  M[i][j] == '0', M[i][j+1]^=1, M[i][j-1]^=1 M[i-1][j]^=1 M[i+1][j]^=1      |       1        |
+Precondições: 0 <= i, j < N.
 
+Efeitos: Altera o valor de M[i][j] e todos os seus vizinhos. 
+
+Custo: Sempre 1.
+  
+Heurísticas: h1(n) = número de células com valor 1; h2(n) = número de linhas totalmente desligadas.
