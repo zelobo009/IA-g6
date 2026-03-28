@@ -120,6 +120,13 @@ def ucs(initial_state):
     return None
 
 
+def heuristic1(state):
+    # nr celúlas ligadas
+    return sum(cell for row in state.board for cell in row)
+
+def heuristic2(state):
+    #nr linhas totalmente desligadas
+    return sum(1 for row in state.board if all(cell == 0 for cell in row))
 
 def randomBoard(n = 4, moves = 10):
     board = [[0]*n for _ in range(n)]
