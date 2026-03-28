@@ -3,6 +3,7 @@ import sys
 from collections import deque
 import copy
 import random
+import heapq
 
 class LightsOutState:
 
@@ -78,6 +79,47 @@ def dfs(initial_state, max_depth=20):
                 stack.append((new_state, moves + [(r,c)], path_visited | {new_state}))
     return None
 
+def iddfs(initial_state):
+    def dls(state, moves, path_visited, limit):
+        if state.winningState():
+            return moves
+        if len(moves) == limit:
+            return None
+        for (r, c) in state.getPossibleMoves():
+            new_state = state.move(r, c)
+            if new_state not in path_visited:
+                result = dls(new_state, moves + [(r, c)],
+                             path_visited | {new_state}, limit)
+                if result is not None:
+                    return result
+        return None
+    for limit in range(1,50):
+        result = dls(initial_state, [], {initial_state}, limit)
+        if result is not None: return result
+    return None
+
+def ucs(initial_state):
+    if initial_state.winningState():
+        return []
+    counter = 0
+    heap = [(0, counter, initial_state, [])]
+    visited = {}
+
+    while heap:
+        cost, _, state, moves = heapq.heappop(heap)
+        if state in visited: continue
+        visited[state] = cost
+        if state.winningState():
+            return moves
+        for (r,c) in state.getPossibleMoves():
+            new_state = state.move(r,c)
+            new_cost = cost + 1 
+            if new_state not in visited:
+                counter+= 1
+                heapq.heappush(heap, (new_cost, counter, new_state, moves + [(r,c)]))
+    return None
+
+
 
 def randomBoard(n = 4, moves = 10):
     board = [[0]*n for _ in range(n)]
@@ -147,6 +189,18 @@ def play():
                             state    = LightsOutState(copy.deepcopy(initial_state.board))
                             pc_moves = list(sol)
                             pc_timer = 0
+                if event.key == pygame.K_i:            # IDDFS
+                    sol = iddfs(initial_state)
+                    if sol:
+                        state = LightsOutState(copy.deepcopy(initial_state.board))
+                        pc_moves = list(sol)
+                        pc_timer = 0
+                if event.key == pygame.K_u:            # UCS
+                    sol = ucs(initial_state)
+                    if sol:
+                        state = LightsOutState(copy.deepcopy(initial_state.board))
+                        pc_moves = list(sol)
+                        pc_timer = 0
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = event.pos
                 col = (mx - 20) // (110 + 10)
