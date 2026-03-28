@@ -44,6 +44,7 @@ class LightsOutState:
     def __hash__(self):
         return hash(tuple(tuple(row) for row in self.board))
 
+
 def bfs(initial_state):
     if initial_state.winningState():
         return []
@@ -60,6 +61,7 @@ def bfs(initial_state):
                 queue.append((new_state, moves + [(r,c)]))
     return None
 
+
 def dfs(initial_state, max_depth=20):
     if initial_state.winningState():
         return []
@@ -75,7 +77,18 @@ def dfs(initial_state, max_depth=20):
             if new_state not in path_visited:
                 stack.append((new_state, moves + [(r,c)], path_visited | {new_state}))
     return None
-    
+
+
+def randomBoard(n = 4, moves = 10):
+    board = [[0]*n for _ in range(n)]
+    state = LightsOutState(board)
+    for _ in range(moves):
+        r = random.randint(0, n-1)
+        c = random.randint(0, n-1)
+        state = state.move(r,c)
+    return state
+
+
 
 def drawBoard(screen, board, on_img, off_img):
     LIGHT = 110
@@ -97,14 +110,6 @@ def drawBoard(screen, board, on_img, off_img):
     
     pygame.display.flip()
 
-def randomBoard(n = 4, moves = 10):
-    board = [[0]*n for _ in range(n)]
-    state = LightsOutState(board)
-    for _ in range(moves):
-        r = random.randint(0, n-1)
-        c = random.randint(0, n-1)
-        state = state.move(r,c)
-    return state
 
 def play():
 
