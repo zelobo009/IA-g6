@@ -54,6 +54,8 @@ def bfs(initial_state):
     while queue:
         state, moves = queue.popleft()
         for (r, c) in state.getPossibleMoves():
+            if((r, c)) in moves:
+                continue
             new_state = state.move(r, c)
             if new_state.winningState(): 
                 return moves + [(r,c)]
@@ -72,6 +74,8 @@ def dfs(initial_state, max_depth=20):
         state, moves, path_visited = stack.pop()
         if len(moves) >= max_depth: continue
         for(r, c) in state.getPossibleMoves():
+            if((r, c)) in moves:
+                continue
             new_state = state.move(r,c)
             if new_state.winningState(): 
                 return moves + [(r,c)]
@@ -86,10 +90,12 @@ def iddfs(initial_state):
         if len(moves) == limit:
             return None
         for (r, c) in state.getPossibleMoves():
+            if((r, c)) in moves:
+                continue
             new_state = state.move(r, c)
             if new_state not in path_visited:
                 result = dls(new_state, moves + [(r, c)],
-                             path_visited | {new_state}, limit)
+                            path_visited | {new_state}, limit)
                 if result is not None:
                     return result
         return None
@@ -112,6 +118,8 @@ def ucs(initial_state):
         if state.winningState():
             return moves
         for (r,c) in state.getPossibleMoves():
+            if((r, c)) in moves:
+                continue
             new_state = state.move(r,c)
             new_cost = cost + 1 
             if new_state not in visited:
@@ -126,7 +134,7 @@ def heuristic1(state):
 
 def heuristic2(state):
     #nr linhas totalmente desligadas
-    return sum(1 for row in state.board if all(cell == 0 for cell in row))
+    return sum(1 for row in state.board if any(cell != 0 for cell in row))
 
 def greedy(initial_state, heuristic):
     if initial_state.winningState():
@@ -138,6 +146,8 @@ def greedy(initial_state, heuristic):
     while heap:
         _, _, state, moves = heapq.heappop(heap)
         for (r, c) in state.getPossibleMoves():
+            if((r, c)) in moves:
+                continue
             new_state = state.move(r, c)
             if new_state.winningState():
                 return moves + [(r, c)]
@@ -161,6 +171,8 @@ def astar(initial_state, heuristic):
         if state.winningState():
             return moves
         for (r, c) in state.getPossibleMoves():
+            if((r, c)) in moves:
+                continue
             new_state = state.move(r, c)
             if new_state not in visited:
                 g = len(moves) + 1
@@ -190,7 +202,7 @@ def weighted_astar(initial_state, heuristic, w=2):
                 heapq.heappush(heap, (g + w * heuristic(new_state), counter, new_state, moves + [(r, c)]))
     return None
 
-def randomBoard(n = 4, moves = 10):
+def randomBoard(n = 5, moves = 10):
     board = [[0]*n for _ in range(n)]
     state = LightsOutState(board)
     for _ in range(moves):
@@ -198,7 +210,6 @@ def randomBoard(n = 4, moves = 10):
         c = random.randint(0, n-1)
         state = state.move(r,c)
     return state
-
 
 
 def drawBoard(screen, board, on_img, off_img):
@@ -219,117 +230,127 @@ def drawBoard(screen, board, on_img, off_img):
             else:
                 screen.blit(off_img, (x, y))
     
-    pygame.display.flip()
 
+BUTTON_H      = 40
+BUTTON_MARGIN = 10
+BTN_W         = 120
+BTN_COLS      = 5
+BUTTONS = [
+        ("BFS",       pygame.K_b),
+        ("DFS",       pygame.K_d),
+        ("IDDFS",     pygame.K_i),
+        ("UCS",       pygame.K_u),
+        ("Greedy H1", pygame.K_1),
+        ("Greedy H2", pygame.K_2),
+        ("A* H1",     pygame.K_3),
+        ("A* H2",     pygame.K_4),
+        ("WA* H1",    pygame.K_5),
+        ("WA* H2",    pygame.K_6),
+    ]
+
+def drawButtons(screen, font, buttons, board_bottom):
+    btn_w = 120
+    for i, (label, _) in enumerate(buttons):
+        col = i % 5
+        row = i // 5
+        x = 20 + col * (btn_w + 10)
+        y = board_bottom + 20 + row * (BUTTON_H + BUTTON_MARGIN)
+        rect = pygame.Rect(x, y, btn_w, BUTTON_H)
+        pygame.draw.rect(screen, (70, 70, 70), rect, border_radius=8)
+        text = font.render(label, True, (255, 255, 255))
+        screen.blit(text, (rect.centerx - text.get_width()//2,
+                        rect.centery - text.get_height()//2))
+        
+
+def get_button_rect(i, board_px):
+    col = i % BTN_COLS
+    row = i // BTN_COLS
+    x   = 20 + col * (BTN_W + 10)
+    y   = board_px + 20 + row * (BUTTON_H + BUTTON_MARGIN)
+    return pygame.Rect(x, y, BTN_W, BUTTON_H)
+
+def run_algorithm(key, initial_state):
+    sol = None
+    if   key == pygame.K_b: sol = bfs(initial_state)
+    elif key == pygame.K_d: sol = dfs(initial_state)
+    elif key == pygame.K_i: sol = iddfs(initial_state)
+    elif key == pygame.K_u: sol = ucs(initial_state)
+    elif key == pygame.K_1: sol = greedy(initial_state, heuristic1)
+    elif key == pygame.K_2: sol = greedy(initial_state, heuristic2)
+    elif key == pygame.K_3: sol = astar(initial_state, heuristic1)
+    elif key == pygame.K_4: sol = astar(initial_state, heuristic2)
+    elif key == pygame.K_5: sol = weighted_astar(initial_state, heuristic1)
+    elif key == pygame.K_6: sol = weighted_astar(initial_state, heuristic2)
+    return sol
 
 def play():
+    GAP     = 6
+    PADDING = 30
+    LIGHT   = 110
 
-    GAP       = 6
-    PADDING   = 30
-
-    state = randomBoard()
+    state         = randomBoard()
     initial_state = LightsOutState(copy.deepcopy(state.board))
-    size = len(state.board)
-    win_px = PADDING * 2 + size * 110 + (size - 1) * GAP
+    size          = len(state.board)
+    board_px      = PADDING * 2 + size * LIGHT + (size - 1) * GAP
+    btn_rows      = (len(BUTTONS) + BTN_COLS - 1) // BTN_COLS
+    btn_area_h    = btn_rows * (BUTTON_H + BUTTON_MARGIN) + 40
+    win_w         = board_px
+    win_h         = board_px + btn_area_h
+
     pygame.init()
-    on_img = pygame.image.load("sprites/lightson.jpg")
-    off_img = pygame.image.load("sprites/lightsoff.jpg")
-    on_img = pygame.transform.scale(on_img, (110, 110))
-    off_img = pygame.transform.scale(off_img, (110, 110))
-    screen = pygame.display.set_mode((win_px, win_px))
-    clock = pygame.time.Clock()
+    font    = pygame.font.SysFont("helvetica", 18)
+    on_img  = pygame.transform.scale(pygame.image.load("sprites/lightson.jpg"),  (LIGHT, LIGHT))
+    off_img = pygame.transform.scale(pygame.image.load("sprites/lightsoff.jpg"), (LIGHT, LIGHT))
+    screen  = pygame.display.set_mode((win_w, win_h))
+    pygame.display.set_caption("Lights Out")
+    clock   = pygame.time.Clock()
+
     pc_moves = []
     pc_timer = 0
 
-    while not state.winningState():
+    while not(state.winningState()):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
+
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_b:        # BFS
-                    sol = bfs(initial_state)
-                    if sol:
-                        state    = LightsOutState(copy.deepcopy(initial_state.board))
-                        pc_moves = list(sol)
-                        pc_timer = 0
-                if event.key == pygame.K_d:            # DFS
-                        sol = dfs(initial_state)
-                        if sol:
-                            state    = LightsOutState(copy.deepcopy(initial_state.board))
+                sol = run_algorithm(event.key, initial_state)
+                if sol is not None:
+                    state    = LightsOutState(copy.deepcopy(initial_state.board))
+                    pc_moves = list(sol)
+                    pc_timer = 0
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                clicked_button = False
+                for i, (_, key) in enumerate(BUTTONS):
+                    if get_button_rect(i, board_px).collidepoint(event.pos):
+                        sol = run_algorithm(key, state)
+                        if sol is not None:
+                            state    = LightsOutState(copy.deepcopy(state.board))
                             pc_moves = list(sol)
                             pc_timer = 0
-                if event.key == pygame.K_i:            # IDDFS
-                    sol = iddfs(initial_state)
-                    if sol:
-                        state = LightsOutState(copy.deepcopy(initial_state.board))
-                        pc_moves = list(sol)
-                        pc_timer = 0
-                if event.key == pygame.K_u:            # UCS
-                    sol = ucs(initial_state)
-                    if sol:
-                        state = LightsOutState(copy.deepcopy(initial_state.board))
-                        pc_moves = list(sol)
-                        pc_timer = 0
-                if event.key == pygame.K_1:      # Greedy heuristic1
-                    sol = greedy(initial_state, heuristic1)
-                    if sol:
-                        state    = LightsOutState(copy.deepcopy(initial_state.board))
-                        pc_moves = list(sol)
-                        pc_timer = 0
+                        clicked_button = True
+                        break
 
-                if event.key == pygame.K_2:      # Greedy heuristic2
-                    sol = greedy(initial_state, heuristic2)
-                    if sol:
-                        state    = LightsOutState(copy.deepcopy(initial_state.board))
-                        pc_moves = list(sol)
-                        pc_timer = 0
+                if not clicked_button and not state.winningState():
+                    mx, my = event.pos
+                    col = (mx - PADDING) // (LIGHT + GAP)
+                    row = (my - PADDING) // (LIGHT + GAP)
+                    if 0 <= row < size and 0 <= col < size:
+                        state    = state.move(row, col)
+                        pc_moves = []
 
-                if event.key == pygame.K_3:      # A* heuristic1
-                    sol = astar(initial_state, heuristic1)
-                    if sol:
-                        state    = LightsOutState(copy.deepcopy(initial_state.board))
-                        pc_moves = list(sol)
-                        pc_timer = 0
-
-                if event.key == pygame.K_4:      # A* heuristic2
-                    sol = astar(initial_state, heuristic2)
-                    if sol:
-                        state    = LightsOutState(copy.deepcopy(initial_state.board))
-                        pc_moves = list(sol)
-                        pc_timer = 0
-
-                if event.key == pygame.K_5:      # Weighted A* heuristic1
-                    sol = weighted_astar(initial_state, heuristic1)
-                    if sol:
-                        state    = LightsOutState(copy.deepcopy(initial_state.board))
-                        pc_moves = list(sol)
-                        pc_timer = 0
-
-                if event.key == pygame.K_6:      # Weighted A* heuristic2
-                    sol = weighted_astar(initial_state, heuristic2)
-                    if sol:
-                        state    = LightsOutState(copy.deepcopy(initial_state.board))
-                        pc_moves = list(sol)
-                        pc_timer = 0
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mx, my = event.pos
-                col = (mx - 20) // (110 + 10)
-                row = (my - 20) // (110 + 10)
-                if 0 <= row < size and 0 <= col < size:
-                    state = state.move(row, col)
-                    pc_moves = []
-            
         if pc_moves:
             pc_timer -= 1
             if pc_timer <= 0:
                 r, c     = pc_moves.pop(0)
                 state    = state.move(r, c)
                 pc_timer = 40
-                
-        drawBoard(screen, state.board, on_img, off_img)
-        clock.tick(60)
-    
-    print("You won")
 
+        drawBoard(screen, state.board, on_img, off_img)
+        drawButtons(screen, font, BUTTONS, board_px)
+        pygame.display.flip() 
+        clock.tick(60)
 
 play()
+
