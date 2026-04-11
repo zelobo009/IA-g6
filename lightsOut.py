@@ -2,6 +2,7 @@ import pygame
 import sys
 import copy
 import time
+import tracemalloc
 import GameState
 import EndMenu
 import MainMenu
@@ -86,50 +87,55 @@ def play():
             n = MainMenu.chooseSizeMenu(screen,font,title_font)
             if(n == -1):
                 continue
-            size = n
-            state = GameState.randomBoard(n,20)
-            PADDING = (screen.get_width() - (LIGHT+10)*size)/2
 
-            while(True):
-                moves = 0
-                Nhints = 0
-                hint = (-1,-1)
-                while not(state.winningState()):
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            pygame.quit(); sys.exit()
+            else:
+                size = n
+                state = GameState.randomBoard(n,20)
+                PADDING = (screen.get_width() - (LIGHT+10)*size)/2
 
-                        if event.type == pygame.MOUSEBUTTONDOWN:
-                            mx, my = event.pos
-                            col = int((mx - PADDING) // (LIGHT + GAP))
-                            row = int((my - PADDING) // (LIGHT + GAP))
-                            print(mx,my)
-                            if 0 <= row < size and 0 <= col < size:
-                                state = state.move(row, col)
-                                moves += 1
-                                hint = (-1, -1)
+                while(True):
+                    moves = 0
+                    Nhints = 0
+                    hint = (-1,-1)
+                    while not(state.winningState()):
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                pygame.quit(); sys.exit()
+
+                            if event.type == pygame.MOUSEBUTTONDOWN:
+                                mx, my = event.pos
+                                col = int((mx - PADDING) // (LIGHT + GAP))
+                                row = int((my - PADDING) // (LIGHT + GAP))
+                                print(mx,my)
+                                if 0 <= row < size and 0 <= col < size:
+                                    state = state.move(row, col)
+                                    moves += 1
+                                    hint = (-1, -1)
 
 
-                        if event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_h:
-                                hint = state.getHint()
-                                Nhints += 1
+                            if event.type == pygame.KEYDOWN:
+                                if event.key == pygame.K_h:
+                                    hint = state.getHint()
+                                    Nhints += 1
 
-                    drawBoard(screen, state.board, on_img, off_img, hint)
-                    msg = font.render("H = Hint", True, (150, 150, 150))
-                    screen.blit(msg, (board_px/2 - 15, board_px + 15))
-                    pygame.display.flip() 
-                    clock.tick(60)
-            
-                restart = EndMenu.endPlayerMenu(screen, font, title_font, moves, Nhints)
-                if(restart):
-                    n = MainMenu.chooseSizeMenu(screen,font, title_font)
-                    size = n
-                    state = GameState.randomBoard(n,20)
-                    PADDING = (screen.get_width() - (LIGHT+10)*size)/2
+                        drawBoard(screen, state.board, on_img, off_img, hint)
+                        msg = font.render("H = Hint", True, (150, 150, 150))
+                        screen.blit(msg, (board_px/2 - 15, board_px + 15))
+                        pygame.display.flip() 
+                        clock.tick(60)
+                
+                    restart = EndMenu.endPlayerMenu(screen, font, title_font, moves, Nhints)
+                    if(restart):
+                        n = MainMenu.chooseSizeMenu(screen,font, title_font)
+                        if(n == -1):
+                            break
+                        else:
+                            size = n
+                            state = GameState.randomBoard(n,20)
+                            PADDING = (screen.get_width() - (LIGHT+10)*size)/2
 
-                else:
-                    return
+                    else:
+                        return
         else:
             while(True):
                 (sel,loaded_state,algName) = AlgoMenu.algoMenu(screen,smaller_font,title_font)
@@ -140,12 +146,16 @@ def play():
                     if(loaded_state == None):
                         loaded_state = GameState.randomBoard()
 
+                    tracemalloc.start()
                     t0  = time.time()
                     res = run_algorithm(sel, loaded_state)
                     elapsed = time.time() - t0
-                    print(elapsed)
+                    _, peak = tracemalloc.get_traced_memory()
+                    tracemalloc.stop()
+
+                    print(peak)
+                    
                     pc_moves = copy.copy(res['moves'])
-                    print(pc_moves)
                     pc_timer = 40
                     state = copy.deepcopy(loaded_state)
                     while(len(pc_moves) > 0):
