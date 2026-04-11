@@ -56,7 +56,7 @@ def run_algorithm(key, initial_state):
     return sol
 
 
-def play():
+def play(): 
     GAP     = 5
     LIGHT   = 110
     PADDING = 30

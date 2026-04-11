@@ -134,14 +134,14 @@ def saveResults(algo_name, initial_state, moves, stats, time_elapsed):
         state = GameState.LightsOutState(copy.deepcopy(initial_state.board))
         f.write("Initial Board:\n")
         for row in state.board:
-            f.write("".join(str(c) for c in row) + "\n")
+            f.write(" ".join(str(c) for c in row) + "\n")
         f.write("\n")
 
         for i, (r, c) in enumerate(moves):
             state = state.move(r, c)
             f.write(f"Move {i+1}: ({r}, {c})\n")
             for row in state.board:
-                f.write("".join(str(c) for c in row) + "\n")
+                f.write(" ".join(str(c) for c in row) + "\n")
             f.write("\n")
 
 
