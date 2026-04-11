@@ -97,7 +97,7 @@ def dfs(initial_state, max_depth=20):
         max_states_stored = max(max_states_stored, len(stack))
         state, moves, path_visited = stack.pop()
         nodesExpanded += 1
-        if len(moves) >= max_depth: continue
+        if len(moves) >= (len(initial_state.board)**2): continue
         for(r, c) in state.getPossibleMoves():
             if((r, c)) in moves:
                 continue
@@ -115,35 +115,38 @@ def dfs(initial_state, max_depth=20):
     return None
 
 def iddfs(initial_state):
-    def dls(state, moves, path_visited, limit, nodesCreated, nodesExpanded, max_states_stored):
-        max_states_stored= max(max_states_stored,len(path_visited))
-        nodesExpanded += 1
+    stats = {
+        "nodes_expanded":   0,
+        "nodes_created":    0,
+        "max_states_stored": 0,
+    }
+    def dls(state, moves, path_visited, limit):
+        stats["max_states_stored"] = max(stats["max_states_stored"], len(path_visited))
+        stats["nodes_expanded"]   += 1
         if state.winningState():
-            return {
-                "moves": moves,
-                "nodes_expanded": nodesExpanded,
-                "nodes_created": nodesCreated,
-                "max_states_stored": max_states_stored,
-            }
+            return moves
         if len(moves) == limit:
             return None
         for (r, c) in state.getPossibleMoves():
             if((r, c)) in moves:
                 continue
             new_state = state.move(r, c)
-            nodesCreated += 1
+            stats["nodes_created"] += 1
             if new_state not in path_visited:
                 result = dls(new_state, moves + [(r, c)],
-                            path_visited | {new_state}, limit, nodesCreated, nodesExpanded, max_states_stored)
+                            path_visited | {new_state}, limit)
                 if result is not None:
                     return result
         return None
     for limit in range(1,50):
-        nodesCreated = 0
-        nodesExpanded = 0
-        max_states_stored = 0
-        result = dls(initial_state, [], {initial_state}, limit, nodesCreated, nodesExpanded, max_states_stored)
-        if result is not None: return result
+        result = dls(initial_state, [], {initial_state}, limit)
+        if result is not None: 
+            return {
+                "moves":             result,
+                "nodes_expanded":    stats["nodes_expanded"],
+                "nodes_created":     stats["nodes_created"],
+                "max_states_stored": stats["max_states_stored"],
+            }
     return None
 
 def ucs(initial_state):
@@ -185,11 +188,13 @@ def ucs(initial_state):
 
 def heuristic1(state):
     # nr celúlas ligadas
-    return sum(cell for row in state.board for cell in row)
-
+    return sum(cell for row in state.board 
+                        for cell in row)
+    
 def heuristic2(state):
-    #nr linhas totalmente desligadas
-    return sum(1 for row in state.board if any(cell != 0 for cell in row))
+    #nr linhas liagdas
+    return sum(1 for row in state.board 
+                if any(cell != 0 for cell in row))
 
 def greedy(initial_state, heuristic):
     if initial_state.winningState():
@@ -280,7 +285,7 @@ def weighted_astar(initial_state, heuristic, w=2):
         visited[state] = len(moves)
         if state.winningState():
             return {
-                "moves": moves + [(r,c)],
+                "moves": moves,
                 "nodes_expanded": nodesExpanded,
                 "nodes_created": nodesCreated,
                 "max_states_stored": max_states_stored,

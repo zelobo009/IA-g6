@@ -1,0 +1,35 @@
+Algorithm: Weighted A* (Line Heuristic)
+==============================
+Stats:
+  Moves:           4
+  Nodes Expanded:  36
+  Nodes Generated: 288
+  Max Memory Used: 1863
+  Time:            0.016s
+==============================
+
+Initial Board:
+0 0 1
+1 0 0
+0 1 1
+
+Move 1: (1, 2)
+0 0 0
+1 1 1
+0 1 0
+
+Move 2: (2, 0)
+0 0 0
+0 1 1
+1 0 0
+
+Move 3: (2, 1)
+0 0 0
+0 0 1
+0 1 1
+
+Move 4: (2, 2)
+0 0 0
+0 0 0
+0 0 0
+

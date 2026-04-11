@@ -1,0 +1,35 @@
+Algorithm: UCS
+==============================
+Stats:
+  Moves:           4
+  Nodes Expanded:  820
+  Nodes Generated: 1462
+  Max Memory Used: 6282
+  Time:            0.090s
+==============================
+
+Initial Board:
+0 0 1
+1 0 0
+0 1 1
+
+Move 1: (1, 2)
+0 0 0
+1 1 1
+0 1 0
+
+Move 2: (2, 0)
+0 0 0
+0 1 1
+1 0 0
+
+Move 3: (2, 1)
+0 0 0
+0 0 1
+0 1 1
+
+Move 4: (2, 2)
+0 0 0
+0 0 0
+0 0 0
+
