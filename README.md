@@ -31,4 +31,6 @@ Click any cell to toggle it and its neighbours. The goal is to turn off all the 
 
 ### Algorithms (Auto Solver)
 
-Select **Algorithms** to watch the game be solved automatically. You will see a list of available algorithms — pick one, then choose a board size, and the solver will play the game for you.
+Select **Algorithms** to watch the game be solved automatically. You will see a list of available algorithms — pick one and the solver will play the game for you.
+
+You can also select the option to load a board from a text file. The text tile must only include a square matrix with 1s and 0s.
