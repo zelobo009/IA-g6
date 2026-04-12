@@ -2,17 +2,18 @@ import pygame
 import sys
 
 
-
+# Draws the main menu screen
 def drawMenu(screen, font, title_font, selected):
-    screen.fill((20, 20, 40))
+    screen.fill((20, 20, 40)) # Color background
 
-    # title
+    # Game title at the top center
     title = title_font.render("Lights Out", True, (255, 215, 0))
     screen.blit(title, (screen.get_width()//2 - title.get_width()//2, 80))
 
-    # options
+    # Menu options
     options = ["Play", "Algorithms"]
     for i, option in enumerate(options):
+        # Highlight the selected option
         color = (255, 215, 0) if i == selected else (180, 180, 180)
         bg    = (60, 60, 80)  if i == selected else (40, 40, 60)
         text  = font.render(option, True, color)
@@ -21,13 +22,13 @@ def drawMenu(screen, font, title_font, selected):
         pygame.draw.rect(screen, color, rect, 2, border_radius=12)
         screen.blit(text, (rect.centerx - text.get_width()//2,
                            rect.centery - text.get_height()//2))
-
+    # Draw hint at the bottom
     hint = font.render("UP/DOWN   ENTER to confirm", True, (80, 80, 80))
     screen.blit(hint, (screen.get_width()//2 - hint.get_width()//2,
                        screen.get_height() - 50))
     pygame.display.flip()
 
-
+# Handles main menu logic and input
 def menu(screen, font, title_font):
     selected = 0
     clock    = pygame.time.Clock()
@@ -52,14 +53,15 @@ def menu(screen, font, title_font):
         drawMenu(screen, font, title_font, selected)
         clock.tick(60)
 
+# Draws the board size selection screen
 def drawSizeMenu(screen, font, title_font, selected):
     screen.fill((20, 20, 40))
 
-    # title
+    # Title
     title = title_font.render("Choose Board Size", True, (255, 215, 0))
     screen.blit(title, (screen.get_width()//2 - title.get_width()//2, 80))
 
-    # options
+    # Options
     options = ["3x3", "4x4", "5x5"]
     for i, option in enumerate(options):
         color = (255, 215, 0) if i == selected else (180, 180, 180)
@@ -77,6 +79,7 @@ def drawSizeMenu(screen, font, title_font, selected):
     pygame.display.flip()
     return
 
+# Handles board size selection logic and input
 def chooseSizeMenu(screen, font, title_font):
     selected = 0
     clock    = pygame.time.Clock()
