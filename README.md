@@ -1,21 +1,34 @@
-# IA-g6
+# IA-g6 — Lights Out
 
-# Run Instructions 
+## Run Instructions
 
-# Lights Out
+### Prerequisites
 
-Representação : O jogo pode ser representado por uma matrix quadrada N x N onde quadrados ligados estão a 1 e desligados a 0.
+* Python 3.12
+* pip pygame
 
-Estado Inicial :  Configuração aleatória do tabuleiro combinado por luzes ligadas e desligadas. 
+### 1. Install dependencies
 
-Estado Final : M[i][j] = 0 para todos os quadrados da matriz, luzes totalmente desligadas.
+pip install pygame
 
-Operador :  Toggle M[i][j], alterar o valor na posição (i, j).
+### 2. Run the program
 
-Precondições: 0 <= i, j < N.
+python lightsOut.py 
+**OR**
+python3 lightsOut.py
 
-Efeitos: Altera o valor de M[i][j] e todos os seus vizinhos. 
+## How to Play
 
-Custo: Sempre 1.
-  
-Heurísticas: h1(n) = número de células com valor 1; h2(n) = número de linhas totalmente desligadas.
+When you launch the game, you will see the main menu with two options: **Play** and **Algorithms**.
+
+### Play (Free Play)
+
+Select **Play** to play the game manually. You will be asked to choose a board size: **3×3**, **4×4**, or **5×5**.
+
+Click any cell to toggle it and its neighbours. The goal is to turn off all the lights.
+
+> 💡 **Hint:** Press **H** during the game to get a hint on which cell to click next.
+
+### Algorithms (Auto Solver)
+
+Select **Algorithms** to watch the game be solved automatically. You will see a list of available algorithms — pick one, then choose a board size, and the solver will play the game for you.
