@@ -106,7 +106,6 @@ def play():
                                 mx, my = event.pos
                                 col = int((mx - PADDING) // (LIGHT + GAP))
                                 row = int((my - PADDING) // (LIGHT + GAP))
-                                print(mx,my)
                                 if 0 <= row < size and 0 <= col < size:
                                     state = state.move(row, col)
                                     moves += 1
@@ -152,9 +151,6 @@ def play():
                     elapsed = time.time() - t0
                     _, peak = tracemalloc.get_traced_memory()
                     tracemalloc.stop()
-
-                    print(peak)
-                    
                     pc_moves = copy.copy(res['moves'])
                     pc_timer = 40
                     state = copy.deepcopy(loaded_state)
