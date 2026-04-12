@@ -9,7 +9,7 @@ import MainMenu
 import AlgoMenu
 
     
-
+# Draws the current board state on screen
 def drawBoard(screen, board, on_img, off_img, hint):
     LIGHT = 110
     ON_COLOR  = (255,215,0)
@@ -30,9 +30,9 @@ def drawBoard(screen, board, on_img, off_img, hint):
                 pygame.draw.rect(screen, (0, 255, 100),
                                      (x, y, LIGHT, LIGHT), 4, border_radius=6)
             elif board[i][j] == 0:
-                screen.blit(on_img, (x, y))
+                screen.blit(on_img, (x, y)) # Light is ON
             else:
-                screen.blit(off_img, (x, y))
+                screen.blit(off_img, (x, y)) # Light is OFF
     
 
 BUTTON_H      = 40
@@ -41,7 +41,7 @@ BTN_W         = 120
 BTN_COLS      = 5
 
 
-
+# Runs the selected algorithm and returns the solution
 def run_algorithm(key, initial_state):
     sol = None
     if   key == 0: sol = GameState.bfs(initial_state)
@@ -56,12 +56,12 @@ def run_algorithm(key, initial_state):
     elif key == 9: sol = GameState.weighted_astar(initial_state, GameState.heuristic2)
     return sol
 
-
+# Main game loop
 def play(): 
     GAP     = 5
     LIGHT   = 110
     PADDING = 30
-    state         = GameState.randomBoard()
+    state         = GameState.randomBoard() # Generate a random starting board
     initial_state = GameState.LightsOutState(copy.deepcopy(state.board))
     size          = 5
     board_px      = PADDING * 2 + size * LIGHT + (size - 1) * GAP
@@ -82,7 +82,7 @@ def play():
     pc_timer = 0
     while (True):
         mode = MainMenu.menu(screen,font,title_font);
-
+        # Player mode
         if(mode == 0):
             n = MainMenu.chooseSizeMenu(screen,font,title_font)
             if(n == -1):
@@ -111,7 +111,7 @@ def play():
                                     moves += 1
                                     hint = (-1, -1)
 
-
+                            # Request a hint for the current state
                             if event.type == pygame.KEYDOWN:
                                 if event.key == pygame.K_h:
                                     hint = state.getHint()
@@ -122,7 +122,7 @@ def play():
                         screen.blit(msg, (board_px/2 - 15, board_px + 15))
                         pygame.display.flip() 
                         clock.tick(60)
-                
+                    # Board solved show end screen
                     restart = EndMenu.endPlayerMenu(screen, font, title_font, moves, Nhints)
                     if(restart):
                         n = MainMenu.chooseSizeMenu(screen,font, title_font)
@@ -135,7 +135,7 @@ def play():
 
                     else:
                         return
-        else:
+        else: # Algorithm mode
             while(True):
                 (sel,loaded_state,algName) = AlgoMenu.algoMenu(screen,smaller_font,title_font)
                 if(sel == -1):
@@ -144,7 +144,7 @@ def play():
                 else:
                     if(loaded_state == None):
                         loaded_state = GameState.randomBoard()
-
+                    # Run the algorithm and measure time and memory usage
                     tracemalloc.start()
                     t0  = time.time()
                     res = run_algorithm(sel, loaded_state)
@@ -155,7 +155,7 @@ def play():
                     pc_moves = copy.copy(res['moves'])
                     pc_timer = 40
                     state = copy.deepcopy(loaded_state)
-                    while(len(pc_moves) > 0):
+                    while(len(pc_moves) > 0): # Replay each move step by step
                         pc_timer -= 1
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:

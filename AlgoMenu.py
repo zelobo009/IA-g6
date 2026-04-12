@@ -4,6 +4,7 @@ import sys
 import tkinter as tk
 from tkinter import filedialog
 
+# All available algorithm options, paired with their GameState function calls
 ALGO_OPTIONS = [
     ("BFS",          lambda s: GameState.bfs(s)),
     ("DFS",          lambda s: GameState.dfs(s)),
@@ -18,13 +19,12 @@ ALGO_OPTIONS = [
 
 ]
 
-
-
+# Draws the algorithm selection menu
 def drawAlgoMenu(screen, font, title_font, selected, loaded_state):
     screen.fill((20, 20, 40))
     title = title_font.render("Choose Algorithm", True, (255, 215, 0))
     screen.blit(title, (screen.get_width()//2 - title.get_width()//2, 40))
-
+    # Draw a button for each algorithm, highlighting the selected one
     for i, (label, _) in enumerate(ALGO_OPTIONS):
         color = (255, 215, 0) if i == selected else (180, 180, 180)
         bg    = (60, 60, 80)  if i == selected else (40, 40, 60)
@@ -50,6 +50,7 @@ def drawAlgoMenu(screen, font, title_font, selected, loaded_state):
                        screen.get_height() - 40))
     pygame.display.flip()
 
+# Opens a native file picker dialog and returns the selected file path
 def openFileDialog():
     root = tk.Tk()
     root.withdraw()
@@ -60,6 +61,7 @@ def openFileDialog():
     root.destroy()
     return filepath if filepath else None
 
+# Handles algorithm menu logic and input
 def algoMenu(screen, font, title_font):
     selected = 0
     clock    = pygame.time.Clock()

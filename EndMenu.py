@@ -4,14 +4,14 @@ import sys
 import copy
 import GameState
 
-
+# Draws the "You Won!" screen with move/hint stats and Restart/Exit buttons
 def drawPlayerStats(screen, font, title_font, moves, hints,selected):
     screen.fill((20, 20, 40))
 
     title = title_font.render("You Won!", True, (255, 215, 0))
     screen.blit(title, (screen.get_width()//2 - title.get_width()//2, 60))
 
-
+    # Display move and hint counts
     lines = [
         f"Moves:        {moves}",
         f"Hints:        {hints}",
@@ -20,7 +20,7 @@ def drawPlayerStats(screen, font, title_font, moves, hints,selected):
         color = (180, 230, 180)
         text  = font.render(line, True, color)
         screen.blit(text, (screen.get_width()//2 - text.get_width()//2, 150 + (i * 30)))
-
+    # Draw Restart and Exit buttons
     options = ["Restart", "Exit"]
     for i, option in enumerate(options):
         color = (255, 215, 0) if i == selected else (180, 180, 180)
@@ -31,12 +31,14 @@ def drawPlayerStats(screen, font, title_font, moves, hints,selected):
         pygame.draw.rect(screen, color, rect, 2, border_radius=12)
         screen.blit(text, (rect.centerx - text.get_width()//2,
                            rect.centery - text.get_height()//2))
-
+    # Navigation hint at the bottom
     hint = font.render("UP/DOWN   ENTER to confirm", True, (80, 80, 80))
     screen.blit(hint, (screen.get_width()//2 - hint.get_width()//2,
                        screen.get_height() - 50))
     pygame.display.flip()
 
+# Handles the end-of-game menu for the player
+# Returns True if the player wants to restart, False to exit
 def endPlayerMenu(screen, font, title_font, moves, hints):
     restart = False
     clock    = pygame.time.Clock()
@@ -64,9 +66,7 @@ def endPlayerMenu(screen, font, title_font, moves, hints):
             pygame.display.flip() 
             clock.tick(60)
 
-                    
-
-
+# Draws the algorithm results screen with performance statistics
 def drawAlgStatMenu(screen, font, title_font, stats, time_elapsed, algname, initialState, peakMem):
 
     screen.fill((20, 20, 40))
@@ -76,7 +76,7 @@ def drawAlgStatMenu(screen, font, title_font, stats, time_elapsed, algname, init
 
     algo_text = font.render(f"Algorithm:  {algname}", True, (255, 215, 0))
     screen.blit(algo_text, (screen.get_width()//2 - algo_text.get_width()//2, 130))
-
+    # Display all performance stats
     lines = [
         f"Moves:           {len(stats['moves'])}",
         f"Nodes Expanded:  {stats['nodes_expanded']}",
@@ -96,10 +96,10 @@ def drawAlgStatMenu(screen, font, title_font, stats, time_elapsed, algname, init
 
     return
 
-
+# Handles the algorithm stats screen; saves results and waits for ESC
 def AlgStatMenu(screen, font, title_font, stats, time_elapsed, algname, initialState, peakMem):
         clock = pygame.time.Clock()
-
+        # Save the results to a file as soon as this screen is shown
         saveResults(algname, initialState, stats['moves'], stats, time_elapsed, peakMem)
         while True:
             for event in pygame.event.get():
@@ -112,9 +112,10 @@ def AlgStatMenu(screen, font, title_font, stats, time_elapsed, algname, initialS
             drawAlgStatMenu(screen, font, title_font, stats, time_elapsed, algname,  initialState, peakMem)
             clock.tick(60)
 
-
+# Saves algorithm results and the full move-by-move board replay to a file
 def saveResults(algo_name, initial_state, moves, stats, time_elapsed, peakMem):
-    timestamp = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
+    # Build a unique filename using the algorithm name and current timestamp
+    timestamp = dt.datetime.now().strftime("%Y%m%d_%H%M%S") 
     algo_slug = algo_name.replace(" ", "_").replace("*", "star")
     filepath  = f"outputs/{algo_slug}_{timestamp}.txt"
 
