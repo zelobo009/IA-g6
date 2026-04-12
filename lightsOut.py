@@ -151,6 +151,7 @@ def play():
                     elapsed = time.time() - t0
                     _, peak = tracemalloc.get_traced_memory()
                     tracemalloc.stop()
+
                     pc_moves = copy.copy(res['moves'])
                     pc_timer = 40
                     state = copy.deepcopy(loaded_state)
@@ -175,7 +176,7 @@ def play():
                         pygame.display.flip()
                         clock.tick(60)
 
-                    sel = EndMenu.AlgStatMenu(screen, font, title_font, res, elapsed, algName, loaded_state)
+                    sel = EndMenu.AlgStatMenu(screen, font, title_font, res, elapsed, algName, loaded_state, peak)
 
                     if(sel == -1):
                         break

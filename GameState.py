@@ -60,10 +60,8 @@ def bfs(initial_state):
     queue = deque([(initial_state, [])])
     nodesExpanded = 0
     nodesCreated = 0
-    max_states_stored = 0
     visited = {initial_state}
     while queue:
-        max_states_stored = max(max_states_stored, len(queue))
         state, moves = queue.popleft()
         nodesExpanded += 1
 
@@ -77,7 +75,6 @@ def bfs(initial_state):
                     "moves": moves + [(r, c)],
                     "nodes_expanded": nodesExpanded,
                     "nodes_created": nodesCreated,
-                    "max_states_stored": max_states_stored,
                 }
             if new_state not in visited:
                 visited.add(new_state)
@@ -91,10 +88,8 @@ def dfs(initial_state, max_depth=20):
     stack = [(initial_state, [], frozenset([initial_state]))]
     nodesExpanded = 0
     nodesCreated = 0
-    max_states_stored = 0
 
     while stack:
-        max_states_stored = max(max_states_stored, len(stack))
         state, moves, path_visited = stack.pop()
         nodesExpanded += 1
         if len(moves) >= (len(initial_state.board)**2): continue
@@ -108,7 +103,6 @@ def dfs(initial_state, max_depth=20):
                     "moves": moves + [(r, c)],
                     "nodes_expanded": nodesExpanded,
                     "nodes_created": nodesCreated,
-                    "max_states_stored": max_states_stored,
                 }
             if new_state not in path_visited:
                 stack.append((new_state, moves + [(r,c)], path_visited | {new_state}))
@@ -118,10 +112,8 @@ def iddfs(initial_state):
     stats = {
         "nodes_expanded":   0,
         "nodes_created":    0,
-        "max_states_stored": 0,
     }
     def dls(state, moves, path_visited, limit):
-        stats["max_states_stored"] = max(stats["max_states_stored"], len(path_visited))
         stats["nodes_expanded"]   += 1
         if state.winningState():
             return moves
@@ -145,7 +137,6 @@ def iddfs(initial_state):
                 "moves":             result,
                 "nodes_expanded":    stats["nodes_expanded"],
                 "nodes_created":     stats["nodes_created"],
-                "max_states_stored": stats["max_states_stored"],
             }
     return None
 
@@ -158,11 +149,9 @@ def ucs(initial_state):
     
     nodesExpanded = 0
     nodesCreated = 0
-    max_states_stored = 0
 
 
     while heap:
-        max_states_stored = max(max_states_stored,len(heap))
         cost, _, state, moves = heapq.heappop(heap)
         nodesExpanded += 1
         if state in visited: continue
@@ -172,7 +161,6 @@ def ucs(initial_state):
                 "moves": moves,
                 "nodes_expanded": nodesExpanded,
                 "nodes_created": nodesCreated,
-                "max_states_stored": max_states_stored,
             }
         for (r,c) in state.getPossibleMoves():
             if((r, c)) in moves:
@@ -190,7 +178,7 @@ def heuristic1(state):
     # nr celúlas ligadas
     return sum(cell for row in state.board 
                         for cell in row)
-    
+
 def heuristic2(state):
     #nr linhas liagdas
     return sum(1 for row in state.board 
@@ -205,10 +193,8 @@ def greedy(initial_state, heuristic):
 
     nodesExpanded = 0
     nodesCreated = 0
-    max_states_stored = 0
 
     while heap:
-        max_states_stored = max(max_states_stored,len(heap))
         _, _, state, moves = heapq.heappop(heap)
         nodesExpanded += 1
 
@@ -222,7 +208,6 @@ def greedy(initial_state, heuristic):
                     "moves": moves + [(r,c)],
                     "nodes_expanded": nodesExpanded,
                     "nodes_created": nodesCreated,
-                    "max_states_stored": max_states_stored,
                 }
             if new_state not in visited:
                 visited.add(new_state)
@@ -239,10 +224,8 @@ def astar(initial_state, heuristic):
 
     nodesExpanded = 0
     nodesCreated = 0
-    max_states_stored = 0
 
     while heap:
-        max_states_stored = max(max_states_stored,len(heap))
         _, _, state, moves = heapq.heappop(heap)
         nodesExpanded += 1
         if state in visited : continue
@@ -252,7 +235,6 @@ def astar(initial_state, heuristic):
                 "moves": moves,
                 "nodes_expanded": nodesExpanded,
                 "nodes_created": nodesCreated,
-                "max_states_stored": max_states_stored,
             }
         for (r, c) in state.getPossibleMoves():
             if((r, c)) in moves:
@@ -275,10 +257,8 @@ def weighted_astar(initial_state, heuristic, w=2):
 
     nodesExpanded = 0
     nodesCreated = 0
-    max_states_stored = 0
 
     while heap:
-        max_states_stored = max(max_states_stored,len(heap))
         _, _, state, moves = heapq.heappop(heap)
         nodesExpanded += 1
         if state in visited : continue
@@ -288,7 +268,6 @@ def weighted_astar(initial_state, heuristic, w=2):
                 "moves": moves,
                 "nodes_expanded": nodesExpanded,
                 "nodes_created": nodesCreated,
-                "max_states_stored": max_states_stored,
             }
         for (r, c) in state.getPossibleMoves():
             new_state = state.move(r, c)
