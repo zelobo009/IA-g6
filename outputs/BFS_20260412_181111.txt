@@ -1,0 +1,28 @@
+Algorithm: BFS
+==============================
+Stats:
+  Moves:           2
+  Nodes Expanded:  6
+  Nodes Generated: 87
+Max Memory Used: 74 KB
+  Time:            0.008s
+==============================
+
+Initial Board:
+1 0 0 0
+1 1 0 1
+1 0 1 1
+0 0 0 1
+
+Move 1: (1, 0)
+0 0 0 0
+0 0 0 1
+0 0 1 1
+0 0 0 1
+
+Move 2: (2, 3)
+0 0 0 0
+0 0 0 0
+0 0 0 0
+0 0 0 0
+

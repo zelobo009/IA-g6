@@ -67,7 +67,7 @@ def endPlayerMenu(screen, font, title_font, moves, hints):
                     
 
 
-def drawAlgStatMenu(screen, font, title_font, stats, time_elapsed, algname, initialState):
+def drawAlgStatMenu(screen, font, title_font, stats, time_elapsed, algname, initialState, peakMem):
 
     screen.fill((20, 20, 40))
 
@@ -81,7 +81,7 @@ def drawAlgStatMenu(screen, font, title_font, stats, time_elapsed, algname, init
         f"Moves:           {len(stats['moves'])}",
         f"Nodes Expanded:  {stats['nodes_expanded']}",
         f"Nodes Generated: {stats['nodes_created']}",
-        f"Max Memory Used: {stats['max_states_stored']*(len(initialState.board)**2)}",
+        f"Max Memory Used: {peakMem/1024:.0f} KB",
         f"Time:            {time_elapsed:.3f} s",
     ]
     for i, line in enumerate(lines):
@@ -97,10 +97,10 @@ def drawAlgStatMenu(screen, font, title_font, stats, time_elapsed, algname, init
     return
 
 
-def AlgStatMenu(screen, font, title_font, stats, time_elapsed, algname, initialState):
+def AlgStatMenu(screen, font, title_font, stats, time_elapsed, algname, initialState, peakMem):
         clock = pygame.time.Clock()
 
-        saveResults(algname, initialState, stats['moves'], stats, time_elapsed)
+        saveResults(algname, initialState, stats['moves'], stats, time_elapsed, peakMem)
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -109,11 +109,11 @@ def AlgStatMenu(screen, font, title_font, stats, time_elapsed, algname, initialS
                     if event.key == pygame.K_ESCAPE:
                         return -1
             
-            drawAlgStatMenu(screen, font, title_font, stats, time_elapsed, algname,  initialState)
+            drawAlgStatMenu(screen, font, title_font, stats, time_elapsed, algname,  initialState, peakMem)
             clock.tick(60)
 
 
-def saveResults(algo_name, initial_state, moves, stats, time_elapsed):
+def saveResults(algo_name, initial_state, moves, stats, time_elapsed, peakMem):
     timestamp = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
     algo_slug = algo_name.replace(" ", "_").replace("*", "star")
     filepath  = f"outputs/{algo_slug}_{timestamp}.txt"
@@ -126,7 +126,7 @@ def saveResults(algo_name, initial_state, moves, stats, time_elapsed):
         f.write(f"  Moves:           {len(stats['moves'])}\n")
         f.write(f"  Nodes Expanded:  {stats['nodes_expanded']}\n")
         f.write(f"  Nodes Generated: {stats['nodes_created']}\n")
-        f.write(f"  Max Memory Used: {stats['max_states_stored']*(len(initial_state.board)**2)}\n")
+        f.write(f"Max Memory Used: {peakMem/1024:.0f} KB\n")
         f.write(f"  Time:            {time_elapsed:.3f}s\n")
 
         f.write("="*30 + "\n\n")
