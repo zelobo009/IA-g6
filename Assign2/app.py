@@ -12,6 +12,8 @@ from generate_data import generate, LOCATIONS, EVENTS, PROPERTY_TYPES
 
 # ─── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(page_title="Airbnb Predictor", page_icon="🏠", layout="wide")
+st.cache_data.clear()
+st.cache_resource.clear()
 
 st.markdown("""
 <style>
@@ -170,6 +172,7 @@ with tab_dash:
                     rows.append({"location": loc, "month": m, "dow": dow,
                                  "price": price, "prob": prob, "type": info["type"]})
         return pd.DataFrame(rows)
+
 
     mdf = get_market_data()
 
@@ -453,147 +456,46 @@ with tab_model:
         retrain_submitted = st.form_submit_button("🔄 Regenerate data & retrain", use_container_width=False)
 
     # ── Retrain logic — only runs when form is submitted ─────────────────────
-    if retrain_submitted:
-        with st.spinner("Generating data and retraining…"):
-            import pickle as pkl
-            from sklearn.compose import ColumnTransformer
-            from sklearn.preprocessing import StandardScaler, OneHotEncoder
-            from sklearn.model_selection import train_test_split
-            from sklearn.pipeline import Pipeline
-            from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
-            from generate_data import (
-                SEASON_BOOST, DOW_BOOST, EVENT_OCC_BOOST, EVENT_PRICE_BOOST,
-                DISTRICT_TYPE_BOOST, NATIONAL_HOLIDAYS,
-                PROPERTY_BASE_MULT, PARKING_PROB, POOL_PROB, EVENTS
-            )
+        if retrain_submitted:
+                with st.spinner("Generating data and retraining…"):
+                    from generate_data import generate
+                    from train_model import train_and_save_models
 
-            rng = np.random.default_rng(42)
+                    # 1. Generate new data using UI parameters
+                    df_new = generate(
+                        n=n_rows,
+                        noise_std=noise_std,
+                        prob_clip_min=prob_clip_min,
+                        prob_clip_max=prob_clip_max,
+                        season_mult=season_mult,
+                        peak_month_boost=peak_month_boost,
+                        event_mult=event_mult,
+                        weekend_mult=weekend_mult,
+                        holiday_boost_val=holiday_boost_val,
+                        competition_coef=competition_coef,
+                        review_weight=review_weight,
+                        room_price_incr=room_price_incr,
+                        base_price_mult=base_price_mult,
+                        lead_time_penalty=lead_time_penalty
+                    )
+                    df_new.to_csv("airbnb_data.csv", index=False)
 
-            months     = rng.integers(1, 13, n_rows)
-            days       = rng.integers(1, 29, n_rows)
-            dow        = rng.integers(0, 7, n_rows)
-            is_weekend = (dow >= 4).astype(int)
+                    # 2. Train and save models
+                    train_and_save_models(
+                        csv_path="airbnb_data.csv", 
+                        test_size=test_size, 
+                        n_estimators=n_trees
+                    )
 
-            events = rng.choice(EVENTS, n_rows, p=[0.52, 0.12, 0.10, 0.10, 0.08, 0.08])
-            is_holiday = np.array(
-                [(int(m), int(d)) in NATIONAL_HOLIDAYS for m, d in zip(months, days)],
-                dtype=int,
-            )
-            for i in range(n_rows):
-                if is_holiday[i] and events[i] == "none":
-                    events[i] = "national_holiday"
+                    # 3. Clear cache so Streamlit loads the new models
+                    load_models.clear()
+                    get_market_data.clear()
 
-            loc_keys    = list(LOCATIONS.keys())
-            locs        = rng.choice(loc_keys, n_rows)
-            dist_types  = np.array([LOCATIONS[l]["type"]        for l in locs])
-            competition = np.array([LOCATIONS[l]["competition"] for l in locs])
+                    price_mdl, occ_mdl, X_test, y_price_test, y_occ_test = load_models()
+                    st.session_state["model_version"] = st.session_state.get("model_version", 0) + 1
 
-            rooms      = rng.choice([1, 2, 3, 4, 5], n_rows, p=[0.12, 0.28, 0.30, 0.18, 0.12])
-            prop_types = rng.choice(PROPERTY_TYPES, n_rows, p=[0.45, 0.25, 0.20, 0.10])
-            lead       = rng.integers(1, 91, n_rows)
-
-            review_score = np.clip(rng.normal(4.2, 0.5, n_rows), 1.0, 5.0).round(2)
-            has_parking  = np.array([int(rng.random() < PARKING_PROB[p]) for p in prop_types])
-            has_pool     = np.array([int(rng.random() < POOL_PROB[p])    for p in prop_types])
-
-            season_b = np.array([
-                SEASON_BOOST[int(m)] * season_mult + (peak_month_boost if int(m) in (7, 8) else 0)
-                for m in months
-            ])
-            dow_b = np.array([
-                DOW_BOOST[int(d)] * weekend_mult if int(d) >= 4 else DOW_BOOST[int(d)]
-                for d in dow
-            ])
-            event_occ_b   = np.array([EVENT_OCC_BOOST[e] * event_mult for e in events])
-            dtype_b       = np.array([DISTRICT_TYPE_BOOST[t]          for t in dist_types])
-            lead_b        = lead_time_penalty * lead + np.where(lead <= 3, 5, 0)
-            review_b      = (review_score - 3.5) * review_weight
-            parking_occ_b = has_parking * 3
-            pool_occ_b    = has_pool    * 5
-            competition_b = competition * competition_coef
-            weekend_b     = is_weekend  * 8
-            holiday_b     = is_holiday  * holiday_boost_val
-
-            occupancy = (
-                season_b + dow_b + event_occ_b + dtype_b
-                + lead_b + review_b
-                + parking_occ_b + pool_occ_b
-                + competition_b + weekend_b + holiday_b
-                + rng.normal(-3, max(noise_std, 0.01), n_rows)
-            ).clip(5, 99)
-
-            booking_probability = np.clip(occupancy / 100, prob_clip_min, prob_clip_max)
-            occupied = (rng.random(n_rows) < booking_probability).astype(int)
-
-            loc_base  = np.array([LOCATIONS[l]["base"] * base_price_mult for l in locs])
-            loc_pop   = np.array([LOCATIONS[l]["popularity"]             for l in locs])
-            event_p   = np.array([EVENT_PRICE_BOOST[e]                  for e in events])
-            prop_mult = np.array([PROPERTY_BASE_MULT[p]                 for p in prop_types])
-
-            occ_mult        = 0.60 + (occupancy / 100) * 1.05
-            review_price_b  = (review_score - 3.5) * 12
-            parking_price_b = has_parking * 6
-            pool_price_b    = has_pool    * 18
-            room_b          = (rooms - 1) * room_price_incr
-
-            price = (
-                loc_base * occ_mult * loc_pop * prop_mult
-                + event_p + review_price_b
-                + parking_price_b + pool_price_b + room_b
-                + rng.normal(0, 8, n_rows)
-            ).clip(15, 2500).round(0)
-
-            df_new = pd.DataFrame({
-                "month":         months.astype(int),
-                "day_of_week":   dow.astype(int),
-                "is_weekend":    is_weekend,
-                "is_holiday":    is_holiday,
-                "event":         events,
-                "lead_days":     lead.astype(int),
-                "location":      locs,
-                "district_type": dist_types,
-                "competition":   competition,
-                "rooms":         rooms.astype(int),
-                "property_type": prop_types,
-                "has_parking":   has_parking,
-                "has_pool":      has_pool,
-                "review_score":  review_score,
-                "occupancy":     occupied,
-                "price_eur":     price,
-            })
-            df_new.to_csv("airbnb_data.csv", index=False)
-
-            real_price = df_new["price_eur"]
-            real_occ   = df_new["occupancy"]
-            data       = df_new[QUANT_COLS + QUAL_COLS]
-
-            preproc = ColumnTransformer(transformers=[
-                ("num", StandardScaler(),                       QUANT_COLS),
-                ("cat", OneHotEncoder(handle_unknown="ignore"), QUAL_COLS),
-            ])
-            X_train, X_test_new, yp_train, yp_test, yo_train, yo_test = train_test_split(
-                data, real_price, real_occ, test_size=test_size, random_state=7)
-
-            new_price = Pipeline([("pre", preproc),
-                                   ("reg", RandomForestRegressor(n_estimators=n_trees, random_state=7))])
-            new_price.fit(X_train, yp_train)
-
-            new_occ = Pipeline([("pre", preproc),
-                                 ("clf", RandomForestClassifier(n_estimators=n_trees, random_state=7))])
-            new_occ.fit(X_train, yo_train)
-
-            with open("airbnb_models.pkl", "wb") as f:
-                pkl.dump({
-                    "price_mdl":    new_price,
-                    "occ_mdl":      new_occ,
-                    "X_test":       X_test_new,
-                    "y_price_test": yp_test,
-                    "y_occ_test":   yo_test,
-                }, f)
-
-            load_models.clear()
-            st.success(f"✅ Retrained on {n_rows:,} rows · {n_trees} trees · test split {test_size:.0%}")
-            st.rerun()
+                    st.success(f"✅ Retrained on {n_rows:,} rows")
+                    st.rerun()
 
     st.divider()
 
