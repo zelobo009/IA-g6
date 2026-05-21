@@ -9,10 +9,6 @@ import numpy as np
 np.random.seed(42)
 
 # ─── Districts ────────────────────────────────────────────────────────────────
-# base        : base nightly price (€)
-# popularity  : demand multiplier
-# type        : coastal / urban / historic / rural
-# competition : fixed district-level listing density index (0–1)
 LOCATIONS = {
     # Coastal
     "Aveiro":           {"base": 75,  "popularity": 1.15, "type": "coastal",  "competition": 0.48},
@@ -20,17 +16,17 @@ LOCATIONS = {
     "Leiria":           {"base": 70,  "popularity": 1.10, "type": "coastal",  "competition": 0.40},
     "Setúbal":          {"base": 95,  "popularity": 1.25, "type": "coastal",  "competition": 0.60},
     "Viana do Castelo": {"base": 68,  "popularity": 1.08, "type": "coastal",  "competition": 0.38},
-    # Urban / Metro
+    # Urban
     "Braga":            {"base": 72,  "popularity": 1.15, "type": "urban",    "competition": 0.58},
     "Coimbra":          {"base": 74,  "popularity": 1.12, "type": "urban",    "competition": 0.55},
     "Lisboa":           {"base": 118, "popularity": 1.55, "type": "urban",    "competition": 0.92},
     "Porto":            {"base": 102, "popularity": 1.45, "type": "urban",    "competition": 0.85},
     "Santarém":         {"base": 60,  "popularity": 1.00, "type": "urban",    "competition": 0.35},
-    # Historic / Cultural
+    # Historic
     "Castelo Branco":   {"base": 55,  "popularity": 0.95, "type": "historic", "competition": 0.28},
     "Évora":            {"base": 82,  "popularity": 1.22, "type": "historic", "competition": 0.52},
     "Viseu":            {"base": 60,  "popularity": 1.02, "type": "historic", "competition": 0.32},
-    # Rural / Interior
+    # Rural 
     "Beja":             {"base": 55,  "popularity": 0.95, "type": "rural",    "competition": 0.20},
     "Bragança":         {"base": 52,  "popularity": 0.90, "type": "rural",    "competition": 0.15},
     "Guarda":           {"base": 50,  "popularity": 0.88, "type": "rural",    "competition": 0.14},
@@ -41,21 +37,21 @@ LOCATIONS = {
     "Açores":           {"base": 88,  "popularity": 1.20, "type": "rural",    "competition": 0.30},
 }
 
-DISTRICT_TYPE_BOOST = {"coastal": 12, "urban": 8, "historic": 10, "rural": -8}
+DISTRICT_TYPE_BOOST = {"coastal": +18, "urban": +12, "historic": +14, "rural": -8}
 
 # ─── Events ───────────────────────────────────────────────────────────────────
 EVENTS = ["none", "festival", "sports_event", "concert", "fair", "national_holiday"]
 
 EVENT_OCC_BOOST = {
-    "none":             0,
-    "festival":        30,
-    "sports_event":    25,
-    "concert":         18,
-    "fair":            12,
-    "national_holiday":28,
+    "none":              0,
+    "festival":         +38,
+    "sports_event":     +32,
+    "concert":          +24,
+    "fair":             +16,
+    "national_holiday": +34,
 }
 
-EVENT_PRICE_BOOST = {   # additive €
+EVENT_PRICE_BOOST = { 
     "none":              0,
     "festival":         38,
     "sports_event":     32,
@@ -69,30 +65,30 @@ EVENT_PROBS = [0.52, 0.12, 0.10, 0.10, 0.08, 0.08]
 # ─── Portuguese National Holidays (month, day) ────────────────────────────────
 NATIONAL_HOLIDAYS = {
     (1, 1),   # Ano Novo
-    (4, 25),  # Dia da Liberdade
+    (4, 25),  # 25 de Abril
     (5, 1),   # Dia do Trabalhador
     (6, 10),  # Dia de Portugal
     (8, 15),  # Assunção de Nossa Senhora
     (10, 5),  # Implantação da República
-    (11, 1),  # Todos os Santos
+    (11, 1),  # Dia de Todos os Santos
     (12, 1),  # Restauração da Independência
     (12, 8),  # Imaculada Conceição
     (12, 25), # Natal
-    # Moveable — fixed approximations for synthetic data
+
     (2, 20),  # Carnaval
     (3, 29),  # Sexta-feira Santa
     (3, 31),  # Páscoa
-    (6, 19),  # Corpo de Deus
+    (6, 2),   # Corpo de Deus
 }
 
 # ─── Season & calendar boosts ────────────────────────────────────────────────
 SEASON_BOOST = {
-    1: 5,  2: 6,  3: 10, 4: 15,
-    5: 20, 6: 26, 7: 32, 8: 30,
-    9: 22, 10: 14, 11: 7, 12: 16,
+    1: +5,  2: +6,  3: +12, 4: +20,
+    5: +26, 6: +34, 7: +40, 8: +38,
+    9: +28, 10: +18, 11: +8, 12: +20,
 }
 
-DOW_BOOST = {0: -10, 1: -13, 2: -10, 3: -7, 4: 8, 5: 24, 6: 20}
+DOW_BOOST = {0: -8, 1: -14, 2: -15, 3: -8, 4: +28, 5: +32, 6: +28}
 
 # ─── Property types ───────────────────────────────────────────────────────────
 PROPERTY_TYPES = ["Apartment", "House", "Room", "Shared_House"]
@@ -105,7 +101,7 @@ PROPERTY_BASE_MULT = {
     "Shared_House":0.38,
 }
 
-# Probability that a property type has parking / pool
+
 PARKING_PROB = {"Apartment": 0.35, "House": 0.70, "Room": 0.15, "Shared_House": 0.25}
 POOL_PROB    = {"Apartment": 0.10, "House": 0.45, "Room": 0.02, "Shared_House": 0.08}
 
@@ -113,30 +109,13 @@ POOL_PROB    = {"Apartment": 0.10, "House": 0.45, "Room": 0.02, "Shared_House": 
 # ─── Generator ────────────────────────────────────────────────────────────────
 
 def generate(n: int = 6000, extra_rows=None) -> pd.DataFrame:
-    """
-    Generate n synthetic rows of Airbnb-style listing data for Portugal.
-
-    Parameters
-    ----------
-    n          : number of synthetic rows to generate
-    extra_rows : list of dicts with real observations to append
-
-    Returns
-    -------
-    pd.DataFrame with columns:
-        month, day_of_week, is_weekend, is_holiday, event, lead_days,
-        location, district_type, competition,
-        rooms, property_type, has_parking, has_pool,
-        review_score,
-        occupancy, price_eur
-    """
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(7)
 
     # ── Temporal ──────────────────────────────────────────────────────────────
     months     = rng.integers(1, 13, n)
     days       = rng.integers(1, 29, n)   # max 28 — always valid
     dow        = rng.integers(0, 7, n)
-    is_weekend = (dow >= 5).astype(int)
+    is_weekend = (dow >= 4).astype(int)
 
     # ── Events + holiday flag ─────────────────────────────────────────────────
     events = rng.choice(EVENTS, n, p=EVENT_PROBS)
@@ -148,13 +127,11 @@ def generate(n: int = 6000, extra_rows=None) -> pd.DataFrame:
         if is_holiday[i] and events[i] == "none":
             events[i] = "national_holiday"
 
-    # ── Location & district characteristics ───────────────────────────────────
     loc_keys    = list(LOCATIONS.keys())
     locs        = rng.choice(loc_keys, n)
     dist_types  = np.array([LOCATIONS[l]["type"]        for l in locs])
     competition = np.array([LOCATIONS[l]["competition"] for l in locs])
 
-    # ── Listing attributes ────────────────────────────────────────────────────
     rooms      = rng.choice([1, 2, 3, 4, 5], n, p=[0.12, 0.28, 0.30, 0.18, 0.12])
     prop_types = rng.choice(PROPERTY_TYPES, n, p=PROPERTY_TYPE_PROBS)
     lead       = rng.integers(1, 91, n)
@@ -175,34 +152,33 @@ def generate(n: int = 6000, extra_rows=None) -> pd.DataFrame:
     dow_b         = np.array([DOW_BOOST[int(d)]    for d in dow])
     event_occ_b   = np.array([EVENT_OCC_BOOST[e]   for e in events])
     dtype_b       = np.array([DISTRICT_TYPE_BOOST[t] for t in dist_types])
-    lead_b        = -0.28 * lead + np.where(lead <= 3, 10, 0)
+    lead_b        = -0.10 * lead + np.where(lead <= 3, 5, 0)
 
-    review_b      = (review_score - 3.5) * 8
+    review_b      = (review_score - 3.5) * 18
     parking_occ_b = has_parking * 3
     pool_occ_b    = has_pool    * 5
-    competition_b = -competition * 12   # higher district competition → lower your share
-    weekend_b     = is_weekend  * 4
+    competition_b = -competition * 8 
+    weekend_b     = is_weekend  * 8
     holiday_b     = is_holiday  * 10
 
     occupancy = (
-        50
-        + season_b + dow_b + event_occ_b + dtype_b
+        season_b + dow_b + event_occ_b + dtype_b
         + lead_b
         + review_b
         + parking_occ_b + pool_occ_b
         + competition_b
         + weekend_b + holiday_b
-        + rng.normal(0, 6, n)
+        + rng.normal(-3, 3, n)
     ).clip(5, 99)
 
-    booking_probability = occupancy / 100
+    booking_probability = np.clip(occupancy / 100, 0.05, 0.95)
+    occupied = (rng.random(n) < booking_probability).astype(int) 
 
-    occupied = np.array([
-        int(rng.random() < p)
-        for p in booking_probability
-    ])
+    # occupied = (occupancy >= 50).astype(int) podia ser assim, nao é random mas ajuda a reduzir o noise e mais accuracy   
 
-    # ── Price model ───────────────────────────────────────────────────────────
+    print(pd.Series(occupied).value_counts(normalize=True))
+
+
     loc_base  = np.array([LOCATIONS[l]["base"]       for l in locs])
     loc_pop   = np.array([LOCATIONS[l]["popularity"] for l in locs])
     event_p   = np.array([EVENT_PRICE_BOOST[e]       for e in events])
@@ -253,7 +229,7 @@ def generate(n: int = 6000, extra_rows=None) -> pd.DataFrame:
 # ─── Exports consumed by app.py ───────────────────────────────────────────────
 
 if __name__ == "__main__":
-    df = generate(6000)
+    df = generate(10000)
     df.to_csv("airbnb_data.csv", index=False)
     print(f"Saved {len(df)} rows to airbnb_data.csv")
 
