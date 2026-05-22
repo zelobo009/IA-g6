@@ -430,7 +430,7 @@ with tab_model:
 
             st.markdown('<p class="section-label">Seasonality</p>', unsafe_allow_html=True)
             sc1, sc2 = st.columns(2)
-            season_mult      = sc1.slider("Seasonality strength multiplier", 0.5, 2.0, 1.0, step=0.1)
+            season_mult      = sc1.slider("Seasonality strength multiplier", 0.5, 2.0, 1.5, step=0.1)
             peak_month_boost = sc2.slider("Peak month boost (Jul/Aug)",      0,   20,  0,   step=1)
 
             st.markdown('<p class="section-label">Demand drivers</p>', unsafe_allow_html=True)

@@ -75,7 +75,7 @@ def generate(
     noise_std=3.0,
     prob_clip_min=0.05,
     prob_clip_max=0.95,
-    season_mult=1.0,
+    season_mult=1.5,
     peak_month_boost=0,
     event_mult=1.0,
     weekend_mult=1.0,
