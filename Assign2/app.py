@@ -605,6 +605,6 @@ with tab_model:
     - **Price model:** Regressor → predicts nightly price in €
     - **Occupancy model:** Classifier → predicts whether a night will be booked (0/1) + booking probability
     - **Features:** {', '.join(QUANT_COLS + QUAL_COLS)}
-    - **Training data:** 6,000 synthetic rows · 18 Portuguese districts
-    - **Base Train/test split:** 80% / 20%
+    - **Training data:** 10,000 synthetic rows · 18 Portuguese districts
+    - **Base Train/test split:** 75% / 25%
     """)
