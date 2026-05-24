@@ -59,7 +59,7 @@ SEASON_BOOST = {
     1: +5, 2: +6, 3: +12, 4: +20, 5: +26, 6: +34, 
     7: +40, 8: +38, 9: +28, 10: +18, 11: +8, 12: +20,
 }
-DOW_BOOST = {0: -8, 1: -14, 2: -15, 3: -8, 4: +28, 5: +32, 6: +28}
+DOW_BOOST = {0: -8, 1: -14, 2: -15, 3: -8, 4: +36, 5: +40, 6: +36}
 
 # ─── Property types ───────────────────────────────────────────────────────────
 PROPERTY_TYPES = ["Apartment", "House", "Room", "Shared_House"]
@@ -92,7 +92,6 @@ def generate(
     months     = rng.integers(1, 13, n)
     days       = rng.integers(1, 29, n)
     dow        = rng.integers(0, 7, n)
-    is_weekend = (dow >= 4).astype(int)
 
     events = rng.choice(EVENTS, n, p=EVENT_PROBS)
     is_holiday = np.array(
@@ -132,14 +131,13 @@ def generate(
     competition_b = competition * competition_coef
     parking_occ_b = has_parking * 3
     pool_occ_b    = has_pool    * 5
-    weekend_b     = is_weekend  * 8
     holiday_b     = is_holiday  * holiday_boost_val
 
     occupancy = (
         season_b + dow_b + event_occ_b + dtype_b
         + lead_b + review_b
         + parking_occ_b + pool_occ_b
-        + competition_b + weekend_b + holiday_b
+        + competition_b + holiday_b
         + rng.normal(-3, max(noise_std, 0.01), n)
     ).clip(5, 99)
 
@@ -168,7 +166,6 @@ def generate(
     df = pd.DataFrame({
         "month":         months.astype(int),
         "day_of_week":   dow.astype(int),
-        "is_weekend":    is_weekend,
         "is_holiday":    is_holiday,
         "event":         events,
         "lead_days":     lead.astype(int),

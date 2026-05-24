@@ -14,7 +14,7 @@ def train_and_save_models(csv_path="airbnb_data.csv", test_size=0.25, n_estimato
     real_price = df["price_eur"]
     real_occ = df["occupancy"]
 
-    quant_columns = ["month","day_of_week","lead_days","competition","rooms","review_score","is_weekend","is_holiday","has_parking","has_pool"]
+    quant_columns = ["month","day_of_week","lead_days","competition","rooms","review_score","is_holiday","has_parking","has_pool"]
     qual_columns = ["event","location","district_type","property_type"]
 
     data = data[quant_columns + qual_columns] 

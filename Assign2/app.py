@@ -77,7 +77,7 @@ html, body, [class*="css"] { font-family: 'Sora', sans-serif; }
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 QUANT_COLS = ["month","day_of_week","lead_days","competition","rooms",
-              "review_score","is_weekend","is_holiday","has_parking","has_pool"]
+              "review_score","is_holiday","has_parking","has_pool"]
 QUAL_COLS  = ["event","location","district_type","property_type"]
 FEATURES   = QUANT_COLS + QUAL_COLS
 
@@ -113,7 +113,6 @@ def make_row(month, dow, event, lead, location, rooms, prop_type,
         "competition":   info["competition"],
         "rooms":         rooms,
         "review_score":  review,
-        "is_weekend":    int(dow >= 5),
         "is_holiday":    0,
         "has_parking":   parking,
         "has_pool":      pool,
